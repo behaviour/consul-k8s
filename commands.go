@@ -4,6 +4,7 @@ import (
 	"os"
 
 	cmdACLInit "github.com/hashicorp/consul-k8s/subcommand/acl-init"
+	cmdConnectSidecar "github.com/hashicorp/consul-k8s/subcommand/connect-sidecar"
 	cmdDeleteCompletedJob "github.com/hashicorp/consul-k8s/subcommand/delete-completed-job"
 	cmdInjectConnect "github.com/hashicorp/consul-k8s/subcommand/inject-connect"
 	cmdServerACLInit "github.com/hashicorp/consul-k8s/subcommand/server-acl-init"
@@ -26,6 +27,10 @@ func init() {
 
 		"inject-connect": func() (cli.Command, error) {
 			return &cmdInjectConnect.Command{UI: ui}, nil
+		},
+
+		"connect-sidecar": func() (cli.Command, error) {
+			return &cmdConnectSidecar.Command{UI: ui}, nil
 		},
 
 		"server-acl-init": func() (cli.Command, error) {
