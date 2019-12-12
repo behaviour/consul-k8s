@@ -210,7 +210,7 @@ services {
 	id   = "service-id-sidecar-proxy"
 	name = "service-sidecar-proxy"
 	port = 2000
-    kind = "connect-proxy"
+	kind = "connect-proxy"
 	proxy {
 	  destination_service_name = "service"
 	  destination_service_id = "service-id"
