@@ -94,7 +94,7 @@ func TestRun_ServiceConfigFileInvalid(t *testing.T) {
 }
 
 // Test that we register the services.
-func TestRun_RegistersServices(t *testing.T) {
+func TestRun_ServicesRegistration(t *testing.T) {
 	t.Parallel()
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
@@ -136,7 +136,7 @@ func TestRun_RegistersServices(t *testing.T) {
 // Test that we register services when the Consul agent is down at first.
 // In this test we use an http server to mimic Consul and we start it
 // after we start the command.
-func TestRun_RegistersServicesConsulDown(t *testing.T) {
+func TestRun_ServicesRegistration_ConsulDown(t *testing.T) {
 	t.Parallel()
 	tmpDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
