@@ -5,7 +5,8 @@ executors:
     docker:
       - image: circleci/golang:1.13
     environment:
-      - TEST_RESULTS: /tmp/test-results # path to where test results are saved
+      TEST_RESULTS: /tmp/test-results # path to where test results are saved
+    resource_class: large
 
 jobs:
   go-fmt-and-vet:
