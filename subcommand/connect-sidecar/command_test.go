@@ -3,12 +3,11 @@ package subcommand
 import (
 	"fmt"
 	"github.com/hashicorp/consul/agent"
+	"github.com/hashicorp/consul/sdk/freeport"
 	"github.com/hashicorp/consul/sdk/testutil/retry"
 	"github.com/mitchellh/cli"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
-	"math/rand"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -134,8 +133,6 @@ func TestRun_ServicesRegistration(t *testing.T) {
 }
 
 // Test that we register services when the Consul agent is down at first.
-// In this test we use an http server to mimic Consul and we start it
-// after we start the command.
 func TestRun_ServicesRegistration_ConsulDown(t *testing.T) {
 	t.Parallel()
 	tmpDir, err := ioutil.TempDir("", "")
@@ -150,7 +147,7 @@ func TestRun_ServicesRegistration_ConsulDown(t *testing.T) {
 	cmd := Command{
 		UI: ui,
 	}
-	randomPort := rand.Int()%10000 + 10000
+	randomPort := freeport.Get(1)[0]
 	// Run async because we need to kill it when the test is over.
 	exitChan := runCommandAsynchronously(&cmd, []string{
 		"-http-addr", fmt.Sprintf("127.0.0.1:%d", randomPort),
@@ -159,31 +156,25 @@ func TestRun_ServicesRegistration_ConsulDown(t *testing.T) {
 	})
 	defer stopCommand(t, &cmd, exitChan)
 
-	// Start the HTTP server after 500ms.
+	// Start the Consul agent after 500ms.
 	time.Sleep(500 * time.Millisecond)
-	type APICall struct {
-		Method string
-		Path   string
-	}
-	var consulAPICalls []APICall
-	go func() {
-		err := http.ListenAndServe(fmt.Sprintf(":%d", randomPort), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Record all the API calls made.
-			consulAPICalls = append(consulAPICalls, APICall{
-				Method: r.Method,
-				Path:   r.URL.Path,
-			})
+	a := agent.NewTestAgent(t, t.Name(), fmt.Sprintf(`primary_datacenter = "dc1"
+ports {
+  http = %d
+}`, randomPort))
+	defer a.Shutdown()
 
-			// Send an empty JSON response with code 200 to all calls.
-			fmt.Fprintln(w, "{}")
-		}))
-		require.NoError(t, err)
-	}()
-
-	// We should get API calls to our server within 500ms.
+	// The services should be registered when the Consul agent comes up
+	// within 500ms.
 	timer := &retry.Timer{Timeout: 500 * time.Millisecond, Wait: 100 * time.Millisecond}
 	retry.RunWith(timer, t, func(r *retry.R) {
-		require.Len(r, consulAPICalls, 2)
+		svc, _, err := a.Client().Agent().Service("service-id", nil)
+		require.NoError(r, err)
+		require.Equal(r, 80, svc.Port)
+
+		svcProxy, _, err := a.Client().Agent().Service("service-id-sidecar-proxy", nil)
+		require.NoError(r, err)
+		require.Equal(r, 2000, svcProxy.Port)
 	})
 }
 
