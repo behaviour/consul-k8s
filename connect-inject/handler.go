@@ -257,7 +257,7 @@ func (h *Handler) Mutate(req *v1beta1.AdmissionRequest) *v1beta1.AdmissionRespon
 		[]corev1.Container{container},
 		"/spec/initContainers")...)
 
-	// Add the Envoy and Connect sidecars.
+	// Add the Envoy and lifecycle sidecars.
 	esContainer, err := h.envoySidecar(&pod)
 	if err != nil {
 		return &v1beta1.AdmissionResponse{
@@ -266,7 +266,7 @@ func (h *Handler) Mutate(req *v1beta1.AdmissionRequest) *v1beta1.AdmissionRespon
 			},
 		}
 	}
-	connectContainer := h.connectSidecar(&pod)
+	connectContainer := h.lifecycleSidecar(&pod)
 	patches = append(patches, addContainer(
 		pod.Spec.Containers,
 		[]corev1.Container{esContainer, connectContainer},

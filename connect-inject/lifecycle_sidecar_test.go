@@ -12,13 +12,13 @@ import (
 // would require a lot of boilerplate to get at the underlying patches that would
 // complicate understanding the tests (which are simple).
 
-// Test that the connect sidecar is as expected.
-func TestConnectSidecar_Default(t *testing.T) {
+// Test that the lifecycle sidecar is as expected.
+func TestLifecycleSidecar_Default(t *testing.T) {
 	handler := Handler{
 		Log:            hclog.Default().Named("handler"),
 		ImageConsulK8s: "hashicorp/consul-k8s:9.9.9",
 	}
-	container := handler.connectSidecar(&corev1.Pod{
+	container := handler.lifecycleSidecar(&corev1.Pod{
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
@@ -28,7 +28,7 @@ func TestConnectSidecar_Default(t *testing.T) {
 		},
 	})
 	require.Equal(t, corev1.Container{
-		Name:  "consul-connect-sidecar",
+		Name:  "consul-connect-lifecycle-sidecar",
 		Image: "hashicorp/consul-k8s:9.9.9",
 		Env: []corev1.EnvVar{
 			{
@@ -49,7 +49,7 @@ func TestConnectSidecar_Default(t *testing.T) {
 			},
 		},
 		Command: []string{
-			"consul-k8s", "connect-sidecar",
+			"consul-k8s", "lifecycle-sidecar",
 			"-service-config", "/consul/connect-inject/service.hcl",
 		},
 	}, container)
@@ -57,7 +57,7 @@ func TestConnectSidecar_Default(t *testing.T) {
 
 // Test that if there's an auth method we set the -token-file flag
 // and if there isn't we don't.
-func TestConnectSidecar_AuthMethod(t *testing.T) {
+func TestLifecycleSidecar_AuthMethod(t *testing.T) {
 	for _, authMethod := range []string{"", "auth-method"} {
 		t.Run("authmethod: "+authMethod, func(t *testing.T) {
 			handler := Handler{
@@ -65,7 +65,7 @@ func TestConnectSidecar_AuthMethod(t *testing.T) {
 				AuthMethod:     authMethod,
 				ImageConsulK8s: "hashicorp/consul-k8s:9.9.9",
 			}
-			container := handler.connectSidecar(&corev1.Pod{
+			container := handler.lifecycleSidecar(&corev1.Pod{
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
@@ -89,12 +89,12 @@ func TestConnectSidecar_AuthMethod(t *testing.T) {
 
 // Test that if there's an annotation on the original pod that changes the sync
 // period we use that value.
-func TestConnectSidecar_SyncPeriodAnnotation(t *testing.T) {
+func TestLifecycleSidecar_SyncPeriodAnnotation(t *testing.T) {
 	handler := Handler{
 		Log:            hclog.Default().Named("handler"),
 		ImageConsulK8s: "hashicorp/consul-k8s:9.9.9",
 	}
-	container := handler.connectSidecar(&corev1.Pod{
+	container := handler.lifecycleSidecar(&corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				"consul.hashicorp.com/connect-sync-period": "55s",

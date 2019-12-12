@@ -5,10 +5,10 @@ import (
 	"strings"
 )
 
-func (h *Handler) connectSidecar(pod *corev1.Pod) corev1.Container {
+func (h *Handler) lifecycleSidecar(pod *corev1.Pod) corev1.Container {
 	command := []string{
 		"consul-k8s",
-		"connect-sidecar",
+		"lifecycle-sidecar",
 		"-service-config", "/consul/connect-inject/service.hcl",
 	}
 	if h.AuthMethod != "" {
@@ -19,7 +19,7 @@ func (h *Handler) connectSidecar(pod *corev1.Pod) corev1.Container {
 	}
 
 	return corev1.Container{
-		Name:  "consul-connect-sidecar",
+		Name:  "consul-connect-lifecycle-sidecar",
 		Image: h.ImageConsulK8s,
 		Env: []corev1.EnvVar{
 			{

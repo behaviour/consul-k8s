@@ -157,9 +157,9 @@ func (c *Command) Help() string {
 	return c.help
 }
 
-const synopsis = "Connect sidecar."
+const synopsis = "Connect lifecycle sidecar."
 const help = `
-Usage: consul-k8s connect-sidecar [options]
+Usage: consul-k8s lifecycle-sidecar [options]
 
   Run as a sidecar to your Connect service. Ensures that your service
   is registered with the local Consul client.
